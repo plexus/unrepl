@@ -1,6 +1,6 @@
 (ns unrepl.repl
   (:require [clojure.main :as m]
-    [unrepl.print :as p]))
+            [unrepl.print :as p]))
 
 (defn tagging-writer
   ([write]
@@ -9,7 +9,7 @@
       (flush []) ; atomic always flush
       (write
         ([x]
-          (write (cond 
+          (write (cond
                    (string? x) x
                    (integer? x) (str (char x))
                    :else (String. ^chars x))))
@@ -53,7 +53,7 @@
 
 (defn pre-reader [^java.io.Reader r before-read]
   (proxy [java.io.FilterReader] [r]
-    (read 
+    (read
       ([] (before-read) (.read r))
       ([cbuf] (before-read) (.read r cbuf))
       ([cbuf off len] (before-read) (.read r cbuf off len)))))
@@ -63,7 +63,7 @@
   (loop [x x]
     (if (= "java.net.SocketInputStream" (.getName (class x)))
       (do (.close x) true)
-      (when-some [^java.lang.reflect.Field field 
+      (when-some [^java.lang.reflect.Field field
                   (->> x class (iterate #(.getSuperclass %)) (take-while identity)
                     (mapcat #(.getDeclaredFields %))
                     (some #(when (#{"in" "sd"} (.getName ^java.lang.reflect.Field %)) %)))]
@@ -120,7 +120,7 @@
 
 (def ^:private unreachable (tagged-literal 'unrepl/... nil))
 (defonce ^:private elision-store (weak-store #(list `fetch %) unreachable))
-(defn fetch [id] 
+(defn fetch [id]
   (let [x ((:get elision-store) id)]
     (cond
       (= unreachable x) x
@@ -158,7 +158,7 @@
   (some-> session-id session :in close-socket!))
 
 (defn reattach-outs! [session-id]
-  (some-> session-id session :write-atom 
+  (some-> session-id session :write-atom
     (reset!
       (if (bound? #'write)
         write
@@ -169,7 +169,7 @@
               (prn x))))))))
 
 (defn set-file-line-col [session-id file line col]
-  (when-some [^java.lang.reflect.Field field 
+  (when-some [^java.lang.reflect.Field field
               (->> clojure.lang.LineNumberingPushbackReader
                 .getDeclaredFields
                 (some #(when (= "_columnNumber" (.getName ^java.lang.reflect.Field %)) %)))]
@@ -227,7 +227,7 @@
                               (flush)
                               ; (reset! aw (blocking-write))
                               (set! *out* raw-out)))
-          
+
           interruptible-eval
           (fn [form]
             (try
@@ -240,7 +240,7 @@
                       (with-bindings original-bindings
                         (try
                           (write [:started-eval
-                                  {:actions 
+                                  {:actions
                                    {:interrupt (list `interrupt! session-id @eval-id)
                                     :background (list `background! session-id @eval-id)}}
                                   @eval-id])
